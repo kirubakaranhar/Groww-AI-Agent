@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Groww AI Trading Agent - Autonomous Command Center</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="top-header">
+    <div class="brand-section">
+      <div class="pulse-indicator" id="systemPulse"></div>
+      <div class="brand-title">GROWW <span>AI AGENT</span> <span style="font-size:11px; color:#64748b; font-weight:400;">v1.0</span></div>
+      
+      <div class="session-badge" id="marketSessionBadge">
+        <span id="sessionStatusText">CHECKING...</span>
+        <span style="color:#475569;">|</span>
+        <span id="istClock">00:00:00 IST</span>
+      </div>
+
+      <div class="mode-badge" id="executionModeBadge">PAPER TRADING (SAFE DEFAULT)</div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-start" id="btnStartAll">▶ Start All Agents</button>
+      <button class="btn btn-pause" id="btnPauseAll">⏸ Pause</button>
+      <button class="btn btn-stop" id="btnStopAll">⏹ Stop</button>
+      <button class="btn btn-shutdown" id="btnEmergencyShutdown">🚨 Emergency Shutdown</button>
+      <button class="btn btn-outline" id="btnOpenBacktest">📊 Backtest</button>
+      <button class="btn btn-outline" id="btnOpenReport">📑 Daily Report</button>
+      <button class="btn btn-outline" id="btnOpenSettings">⚙ Settings</button>
+    </div>
+  </header>
+
+  <!-- Financial Metrics Ribbon -->
+  <section class="metrics-ribbon">
+    <div class="metric-card">
+      <span class="metric-label">Initial Capital</span>
+      <span class="metric-value" id="valInitialCapital">₹5,000.00</span>
+      <span class="metric-sub">Configured baseline</span>
+    </div>
+
+    <div class="metric-card">
+      <span class="metric-label">Available Capital</span>
+      <span class="metric-value" id="valAvailCapital">₹5,000.00</span>
+      <span class="metric-sub" id="valInvestedCapital">Invested: ₹0.00</span>
+    </div>
+
+    <div class="metric-card">
+      <span class="metric-label">Realized Daily P&L</span>
+      <span class="metric-value" id="valRealizedPnl">₹0.00</span>
+      <span class="metric-sub">Net of all statutory charges</span>
+    </div>
+
+    <div class="metric-card">
+      <span class="metric-label">Unrealized P&L</span>
+      <span class="metric-value" id="valUnrealizedPnl">₹0.00</span>
+      <span class="metric-sub">Open paper positions</span>
+    </div>
+
+    <div class="metric-card">
+      <span class="metric-label">Daily Trades</span>
+      <span class="metric-value" id="valTradesCount">0 / 2</span>
+      <span class="metric-sub">Max trades per day limit</span>
+    </div>
+
+    <div class="metric-card">
+      <span class="metric-label">Daily Loss Headroom</span>
+      <span class="metric-value" id="valLossHeadroom">₹50.00</span>
+      <span class="metric-sub">Max loss protection: ₹50</span>
+    </div>
+  </section>
+
+  <!-- 9-Agent Neural Roster -->
+  <section class="agents-wrapper">
+    <div class="section-title">
+      <span>Neural Multi-Agent Fleet Status</span>
+      <span style="font-size:11px; font-weight:400; text-transform:none; color:var(--text-muted);" id="fleetStatusText">Autonomous Master Supervisor Active</span>
+    </div>
+    <div class="agents-grid" id="agentsGrid">
+      <!-- Injected via JavaScript -->
+    </div>
+  </section>
+
+  <!-- Main Trading Command Workspace -->
+  <main class="main-workspace">
+
+    <!-- Column 1: Market Scanner & Stock Analyst -->
+    <div class="workspace-col">
+      <!-- Live Market Watcher & Scanner -->
+      <div class="panel-card" style="height: 300px;">
+        <div class="panel-header">
+          <div class="panel-title">📡 NSE Cash Scanner (<span id="scannerCount">0</span>)</div>
+          <span class="agent-badge" id="growwFeedStatus">FEED: CONNECTING</span>
+        </div>
+        <div class="table-wrapper">
+          <table id="scannerTable">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>LTP (₹)</th>
+                <th>Chg %</th>
+                <th>RVOL</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="scannerTableBody">
+              <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Waiting for scanner cycle...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AI Stock Analyst & Decision Engine -->
+      <div class="panel-card" style="flex:1;">
+        <div class="panel-header">
+          <div class="panel-title">🧠 Stock Analyst & Decision Engine</div>
+          <span class="agent-badge" id="decisionThresholdBadge">Threshold: 70/100</span>
+        </div>
+        <div id="decisionCardContainer">
+          <div style="color:var(--text-muted); text-align:center; padding: 20px;">
+            Awaiting shortlist candidate from Market Watcher...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column 2: Open Positions & Order History -->
+    <div class="workspace-col">
+      <!-- Active Open Positions -->
+      <div class="panel-card" style="min-height: 220px;">
+        <div class="panel-header">
+          <div class="panel-title">⚡ Active Paper Positions (<span id="openPositionsCount">0</span>)</div>
+          <span style="font-size:11px; color:var(--text-muted);">Max Allowed: 1</span>
+        </div>
+        <div id="positionsContainer">
+          <div style="color:var(--text-muted); text-align:center; padding: 30px;">
+            No open paper positions. Monitoring for high-probability signals.
+          </div>
+        </div>
+      </div>
+
+      <!-- Paper Orders & Trade History -->
+      <div class="panel-card" style="flex:1;">
+        <div class="panel-header">
+          <div class="panel-title">📋 Paper Order Log & Executions</div>
+          <span class="agent-badge">SLIPPAGE & CHARGES INCLUDED</span>
+        </div>
+        <div class="table-wrapper">
+          <table id="ordersTable">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Qty</th>
+                <th>Exec Price</th>
+                <th>Charges</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTableBody">
+              <tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No paper orders executed yet today.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column 3: Risk Monitor & Agent Activity Logs -->
+    <div class="workspace-col">
+      <!-- Deterministic Risk Monitor -->
+      <div class="panel-card" style="min-height: 240px;">
+        <div class="panel-header">
+          <div class="panel-title">🛡 Deterministic Risk Engine</div>
+          <button class="btn btn-outline" style="padding:2px 8px; font-size:10px;" id="btnResetKillSwitch">Reset Switch</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:11px;">
+              <span>Daily Max Loss Usage</span>
+              <span id="riskLossUsageText">₹0.00 / ₹50.00</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="riskLossBar" style="width: 0%; background:var(--color-profit);"></div>
+            </div>
+          </div>
+
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:11px;">
+              <span>Open Position Limit</span>
+              <span id="riskPositionsUsageText">0 / 1</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="riskPositionsBar" style="width: 0%; background:var(--color-cyan);"></div>
+            </div>
+          </div>
+
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:11px;">
+              <span>Daily Trade Frequency</span>
+              <span id="riskTradesUsageText">0 / 2</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="riskTradesBar" style="width: 0%; background:var(--color-purple);"></div>
+            </div>
+          </div>
+
+          <div style="font-size:11px; color:var(--text-secondary); background:var(--bg-card); padding:8px; border-radius:4px;">
+            <div>Brokerage: ₹20 or 0.05% | STT: 0.025%</div>
+            <div>Slippage: 0.05% | R:R Target: ≥ 1.5</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agent Event Log Terminal -->
+      <div class="panel-card" style="flex:1;">
+        <div class="panel-header">
+          <div class="panel-title">🖥 Agent Live Stream</div>
+          <span style="font-size:11px; color:var(--text-muted);">Real-time events</span>
+        </div>
+        <div class="terminal-console" id="terminalConsole">
+          <div class="log-entry">
+            <span class="log-time">[STARTUP]</span>
+            <span class="log-agent">[System]:</span>
+            <span class="log-msg-INFO">Groww AI Trading Agent Control Center Initialized.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Modal: Settings & Groww API Connection -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 style="color:#fff;">⚙ Trading Agent Configuration</h3>
+        <button class="close-btn" id="btnCloseSettings">&times;</button>
+      </div>
+
+      <div class="form-group">
+        <label>Groww API Key</label>
+        <input type="text" class="form-control" id="cfgGrowwApiKey" placeholder="Configured via .env or backend" disabled>
+      </div>
+
+      <div class="form-group">
+        <label>Groww API Secret</label>
+        <input type="password" class="form-control" id="cfgGrowwApiSecret" value="********" disabled>
+      </div>
+
+      <div class="form-group">
+        <label>Simulate Market Hours (Testing Override)</label>
+        <select class="form-control" id="cfgSimulateHours">
+          <option value="false">False (Follow live NSE 09:15 - 15:30 IST)</option>
+          <option value="true">True (Allow continuous simulation anytime)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Risk Per Trade (₹)</label>
+        <input type="number" class="form-control" id="cfgRiskPerTrade" value="25.0">
+      </div>
+
+      <div class="form-group">
+        <label>Daily Maximum Loss (₹)</label>
+        <input type="number" class="form-control" id="cfgDailyMaxLoss" value="50.0">
+      </div>
+
+      <div class="form-group">
+        <label>Max Open Positions</label>
+        <input type="number" class="form-control" id="cfgMaxPositions" value="1">
+      </div>
+
+      <div class="form-group">
+        <label>Max Trades Per Day</label>
+        <input type="number" class="form-control" id="cfgMaxTrades" value="2">
+      </div>
+
+      <div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center;">
+        <button class="btn btn-outline" style="color:var(--color-loss);" id="btnOpenSafetyGate">🔒 Live Trading Safety Gate</button>
+        <button class="btn btn-start" id="btnSaveSettings">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Live Trading Safety Gate -->
+  <div class="modal-overlay" id="safetyGateModal">
+    <div class="modal-box" style="max-width:650px; border-color:var(--color-loss);">
+      <div class="modal-header">
+        <h3 style="color:var(--color-loss);">🔒 Live Trading Compliance & Safety Gate</h3>
+        <button class="close-btn" id="btnCloseSafetyGate">&times;</button>
+      </div>
+
+      <div style="background:var(--color-loss-bg); border:1px solid rgba(239, 68, 68, 0.3); border-radius:6px; padding:12px; margin-bottom:16px; font-size:12px; color:#fca5a5;">
+        <strong>WARNING:</strong> Live trading executes actual financial orders with real capital on NSE cash equities through Groww.
+        Paper trading is the default and safe operating mode.
+      </div>
+
+      <div class="form-group">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+          <input type="checkbox" id="chkSebiCompliance">
+          <span>I verify compliance with applicable SEBI and NSE algorithmic trading regulations.</span>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+          <input type="checkbox" id="chkGrowwAuth">
+          <span>I verify active Groww trading account authentication and valid permissions.</span>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+          <input type="checkbox" id="chkStaticIp">
+          <span>I verify broker-mandated static IP tagging and API order attribution.</span>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label>Type exact confirmation phrase to authorize: <code>I_UNDERSTAND_THE_RISKS_ACTIVATE_LIVE</code></label>
+        <input type="text" class="form-control" id="txtLivePassphrase" placeholder="Type confirmation string">
+      </div>
+
+      <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+        <button class="btn btn-outline" id="btnCancelSafetyGate">Cancel</button>
+        <button class="btn btn-shutdown" id="btnConfirmLiveGate">Verify & Authorize Live</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Backtesting Lab -->
+  <div class="modal-overlay" id="backtestModal">
+    <div class="modal-box" style="max-width:700px;">
+      <div class="modal-header">
+        <h3 style="color:#fff;">📊 Historical Quantitative Backtesting</h3>
+        <button class="close-btn" id="btnCloseBacktest">&times;</button>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-bottom:16px;">
+        <input type="text" class="form-control" id="txtBacktestSymbol" value="RELIANCE" placeholder="Symbol (e.g. RELIANCE, INFY, TCS)" style="flex:1;">
+        <button class="btn btn-start" id="btnRunBacktest">Run Walk-Forward Backtest</button>
+      </div>
+
+      <div id="backtestResultsContainer">
+        <div style="color:var(--text-muted); text-align:center; padding:30px;">
+          Select an NSE symbol and click Run Walk-Forward Backtest to simulate with realistic statutory charges and slippage.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Daily Report -->
+  <div class="modal-overlay" id="reportModal">
+    <div class="modal-box" style="max-width:700px;">
+      <div class="modal-header">
+        <h3 style="color:#fff;">📑 Daily Trading & Audit Report</h3>
+        <button class="close-btn" id="btnCloseReport">&times;</button>
+      </div>
+
+      <div id="dailyReportContent" style="font-size:12px; line-height:1.6;">
+        Loading report...
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Script -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
