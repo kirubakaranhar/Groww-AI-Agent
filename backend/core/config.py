@@ -68,6 +68,13 @@ class SystemConfig(BaseSettings):
     DECISION_MIN_SCORE_THRESHOLD: float = 70.0
     UNUSUAL_VOLUME_MULTIPLIER: float = 1.5
 
+    # 7b. Tunable Intraday Strategy Parameters
+    STRATEGY_MIN_CONFIRMATIONS: int = 4
+    STRATEGY_ATR_SL_MULTIPLIER: float = 1.5
+    STRATEGY_RSI_MIN: float = 50.0
+    STRATEGY_RSI_MAX: float = 72.0
+    STRATEGY_MIN_RVOL: float = 1.2
+
     # 8. Server & Database
     SERVER_HOST: str = "127.0.0.1"
     SERVER_PORT: int = 8000

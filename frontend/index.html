@@ -1,5 +1,7 @@
+=f
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,16 +9,20 @@
   <link rel="stylesheet" href="/static/css/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
 </head>
+
 <body>
 
   <!-- Top Navigation Header -->
   <header class="top-header">
     <div class="brand-section">
       <div class="pulse-indicator" id="systemPulse"></div>
-      <div class="brand-title">GROWW <span>AI AGENT</span> <span style="font-size:11px; color:#64748b; font-weight:400;">v1.0</span></div>
-      
+      <div class="brand-title">GROWW <span>AI AGENT</span> <span
+          style="font-size:11px; color:#64748b; font-weight:400;">v1.0</span></div>
+
       <div class="session-badge" id="marketSessionBadge">
         <span id="sessionStatusText">CHECKING...</span>
         <span style="color:#475569;">|</span>
@@ -31,9 +37,15 @@
       <button class="btn btn-pause" id="btnPauseAll">⏸ Pause</button>
       <button class="btn btn-stop" id="btnStopAll">⏹ Stop</button>
       <button class="btn btn-shutdown" id="btnEmergencyShutdown">🚨 Emergency Shutdown</button>
+      <button class="btn btn-outline btn-sound-on" id="btnToggleSound" title="Toggle Audio Alerts">🔊 Sound ON</button>
       <button class="btn btn-outline" id="btnOpenBacktest">📊 Backtest</button>
       <button class="btn btn-outline" id="btnOpenReport">📑 Daily Report</button>
       <button class="btn btn-outline" id="btnOpenSettings">⚙ Settings</button>
+      <!-- Voice Agent Controls -->
+      <button class="btn btn-voice" id="btnAssemblyBriefing" title="Full Assembly Briefing - all 9 agents report">🎙 Assembly</button>
+      <button class="btn btn-outline" id="btnHeaderVoiceModal" title="Customize AI Voice Model & Persona">⚙ Voice Model</button>
+      <button class="btn btn-outline btn-voice-toggle" id="btnToggleVoice" title="Toggle Voice Agent auto-read">🔈 Voice OFF</button>
+      <a href="/api/download/project-zip" class="btn btn-outline" style="text-decoration:none; display:inline-flex; align-items:center;" title="Download complete project ZIP">📦 Download ZIP</a>
     </div>
   </header>
 
@@ -80,10 +92,104 @@
   <section class="agents-wrapper">
     <div class="section-title">
       <span>Neural Multi-Agent Fleet Status</span>
-      <span style="font-size:11px; font-weight:400; text-transform:none; color:var(--text-muted);" id="fleetStatusText">Autonomous Master Supervisor Active</span>
+      <span style="font-size:11px; font-weight:400; text-transform:none; color:var(--text-muted);"
+        id="fleetStatusText">Autonomous Master Supervisor Active</span>
     </div>
     <div class="agents-grid" id="agentsGrid">
       <!-- Injected via JavaScript -->
+    </div>
+    <!-- Voice Agent Ticker Strip -->
+    <div id="voiceTicker" style="
+        display:none;
+        background: linear-gradient(90deg, rgba(99,102,241,0.12) 0%, rgba(16,185,129,0.08) 100%);
+        border: 1px solid rgba(99,102,241,0.3);
+        border-radius: 6px;
+        margin-top: 10px;
+        padding: 8px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+        font-family: var(--font-mono);
+        color: #a5b4fc;
+        overflow: hidden;
+        position: relative;
+    ">
+      <span style="font-size:16px; flex-shrink:0;">🎙</span>
+      <span id="voiceTickerText" style="
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          flex: 1;
+      ">Voice Agent ready. Click Assembly Briefing to begin.</span>
+      <div style="display:flex; gap:6px; flex-shrink:0;">
+        <button class="btn btn-voice" id="btnAssemblyBriefing"
+          style="padding:3px 10px; font-size:11px;"
+          title="Full Assembly Briefing - all 9 agents report status">
+          🎙 Assembly Briefing
+        </button>
+        <button class="btn btn-outline btn-voice-toggle" id="btnToggleVoice"
+          style="padding:3px 10px; font-size:11px;"
+          title="Toggle Voice Agent auto-read">
+          🔈 Voice OFF
+        </button>
+        <button class="btn btn-outline" id="btnRepeatBriefing"
+          style="padding:3px 10px; font-size:11px;"
+          title="Repeat last spoken briefing">
+          ↺ Repeat
+        </button>
+        <button class="btn btn-outline" id="btnOpenVoiceModal"
+          style="padding:3px 10px; font-size:11px; border-color:var(--color-cyan); color:var(--color-cyan);"
+          title="Change AI Voice Model & Persona Settings">
+          ⚙ Voice Model
+        </button>
+        <button class="btn btn-outline" id="btnStopSpeech"
+          style="padding:3px 8px; font-size:11px; color:var(--color-loss);"
+          title="Stop speaking">
+          ⏹
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Candlestick & Indicator Overlay Chart -->
+  <section class="chart-section">
+    <div class="chart-panel">
+      <div class="chart-toolbar">
+        <div class="chart-controls-left">
+          <div class="panel-title">📈 Live Technical Chart</div>
+          <select id="chartSymbolSelect" class="chart-symbol-select">
+            <option value="RELIANCE">RELIANCE</option>
+            <option value="TCS">TCS</option>
+            <option value="HDFCBANK">HDFCBANK</option>
+            <option value="INFY">INFY</option>
+            <option value="ICICIBANK">ICICIBANK</option>
+            <option value="KOTAKBANK">KOTAKBANK</option>
+            <option value="SBIN">SBIN</option>
+            <option value="TATAMOTORS">TATAMOTORS</option>
+            <option value="NTPC">NTPC</option>
+            <option value="ITC">ITC</option>
+          </select>
+          <span class="agent-badge" id="chartIntervalBadge">5m OHLCV</span>
+          <span style="font-family:var(--font-mono); font-size:12px; color:#fff; font-weight:700;"
+            id="chartLiveLtp">LTP: --</span>
+        </div>
+
+        <div class="chart-legend">
+          <span class="legend-item"><span class="legend-swatch" style="background:#06b6d4;"></span>EMA 9</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#f59e0b;"></span>EMA 21</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#a855f7;"></span>VWAP</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#10b981;"></span>Bull</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#ef4444;"></span>Bear</span>
+          <button class="btn btn-outline" style="padding:3px 10px; font-size:11px;" id="btnRefreshChart">↻
+            Refresh</button>
+        </div>
+      </div>
+
+      <div class="chart-canvas-wrap">
+        <div class="chart-tooltip" id="chartTooltip">Hover candles for OHLCV, EMA 9, EMA 21 & VWAP details</div>
+        <canvas id="candlestickCanvas"></canvas>
+      </div>
     </div>
   </section>
 
@@ -110,7 +216,9 @@
               </tr>
             </thead>
             <tbody id="scannerTableBody">
-              <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Waiting for scanner cycle...</td></tr>
+              <tr>
+                <td colspan="5" style="text-align:center; color:var(--text-muted);">Waiting for scanner cycle...</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -149,7 +257,11 @@
       <div class="panel-card" style="flex:1;">
         <div class="panel-header">
           <div class="panel-title">📋 Paper Order Log & Executions</div>
-          <span class="agent-badge">SLIPPAGE & CHARGES INCLUDED</span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="agent-badge">SLIPPAGE & CHARGES</span>
+            <button class="btn btn-outline" style="padding:3px 9px; font-size:11px;" id="btnExportCsv"
+              title="Download completed trades as CSV">⬇ Export CSV</button>
+          </div>
         </div>
         <div class="table-wrapper">
           <table id="ordersTable">
@@ -165,7 +277,10 @@
               </tr>
             </thead>
             <tbody id="ordersTableBody">
-              <tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No paper orders executed yet today.</td></tr>
+              <tr>
+                <td colspan="7" style="text-align:center; color:var(--text-muted);">No paper orders executed yet today.
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -178,7 +293,8 @@
       <div class="panel-card" style="min-height: 240px;">
         <div class="panel-header">
           <div class="panel-title">🛡 Deterministic Risk Engine</div>
-          <button class="btn btn-outline" style="padding:2px 8px; font-size:10px;" id="btnResetKillSwitch">Reset Switch</button>
+          <button class="btn btn-outline" style="padding:2px 8px; font-size:10px;" id="btnResetKillSwitch">Reset
+            Switch</button>
         </div>
         <div style="display:flex; flex-direction:column; gap:12px;">
           <div>
@@ -197,7 +313,8 @@
               <span id="riskPositionsUsageText">0 / 1</span>
             </div>
             <div class="progress-bar-bg">
-              <div class="progress-bar-fill" id="riskPositionsBar" style="width: 0%; background:var(--color-cyan);"></div>
+              <div class="progress-bar-fill" id="riskPositionsBar" style="width: 0%; background:var(--color-cyan);">
+              </div>
             </div>
           </div>
 
@@ -207,11 +324,13 @@
               <span id="riskTradesUsageText">0 / 2</span>
             </div>
             <div class="progress-bar-bg">
-              <div class="progress-bar-fill" id="riskTradesBar" style="width: 0%; background:var(--color-purple);"></div>
+              <div class="progress-bar-fill" id="riskTradesBar" style="width: 0%; background:var(--color-purple);">
+              </div>
             </div>
           </div>
 
-          <div style="font-size:11px; color:var(--text-secondary); background:var(--bg-card); padding:8px; border-radius:4px;">
+          <div
+            style="font-size:11px; color:var(--text-secondary); background:var(--bg-card); padding:8px; border-radius:4px;">
             <div>Brokerage: ₹20 or 0.05% | STT: 0.025%</div>
             <div>Slippage: 0.05% | R:R Target: ≥ 1.5</div>
           </div>
@@ -246,7 +365,8 @@
 
       <div class="form-group">
         <label>Groww API Key</label>
-        <input type="text" class="form-control" id="cfgGrowwApiKey" placeholder="Configured via .env or backend" disabled>
+        <input type="text" class="form-control" id="cfgGrowwApiKey" placeholder="Configured via .env or backend"
+          disabled>
       </div>
 
       <div class="form-group">
@@ -282,8 +402,36 @@
         <input type="number" class="form-control" id="cfgMaxTrades" value="2">
       </div>
 
+      <div style="border-top:1px solid var(--border-subtle); margin:14px 0 10px; padding-top:10px; font-size:11px; color:var(--color-cyan); font-weight:700; text-transform:uppercase;">
+        🎯 Strategy Tuning Parameters
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="form-group">
+          <label>Min Decision Score (55-90)</label>
+          <input type="number" step="1" class="form-control" id="cfgMinScore" value="70">
+        </div>
+        <div class="form-group">
+          <label>Min Confirmations (3-6)</label>
+          <input type="number" step="1" class="form-control" id="cfgMinConfirmations" value="4">
+        </div>
+        <div class="form-group">
+          <label>ATR Stop-Loss Multiplier</label>
+          <input type="number" step="0.1" class="form-control" id="cfgAtrSlMult" value="1.5">
+        </div>
+        <div class="form-group">
+          <label>Risk:Reward Ratio (R:R)</label>
+          <input type="number" step="0.1" class="form-control" id="cfgRrRatio" value="1.5">
+        </div>
+        <div class="form-group">
+          <label>Min Relative Volume (RVOL)</label>
+          <input type="number" step="0.1" class="form-control" id="cfgMinRvol" value="1.2">
+        </div>
+      </div>
+
       <div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center;">
-        <button class="btn btn-outline" style="color:var(--color-loss);" id="btnOpenSafetyGate">🔒 Live Trading Safety Gate</button>
+        <button class="btn btn-outline" style="color:var(--color-loss);" id="btnOpenSafetyGate">🔒 Live Trading Safety
+          Gate</button>
         <button class="btn btn-start" id="btnSaveSettings">Save Settings</button>
       </div>
     </div>
@@ -297,8 +445,10 @@
         <button class="close-btn" id="btnCloseSafetyGate">&times;</button>
       </div>
 
-      <div style="background:var(--color-loss-bg); border:1px solid rgba(239, 68, 68, 0.3); border-radius:6px; padding:12px; margin-bottom:16px; font-size:12px; color:#fca5a5;">
-        <strong>WARNING:</strong> Live trading executes actual financial orders with real capital on NSE cash equities through Groww.
+      <div
+        style="background:var(--color-loss-bg); border:1px solid rgba(239, 68, 68, 0.3); border-radius:6px; padding:12px; margin-bottom:16px; font-size:12px; color:#fca5a5;">
+        <strong>WARNING:</strong> Live trading executes actual financial orders with real capital on NSE cash equities
+        through Groww.
         Paper trading is the default and safe operating mode.
       </div>
 
@@ -335,22 +485,38 @@
     </div>
   </div>
 
-  <!-- Modal: Backtesting Lab -->
+  <!-- Modal: Backtesting & Strategy Tuning Lab -->
   <div class="modal-overlay" id="backtestModal">
-    <div class="modal-box" style="max-width:700px;">
+    <div class="modal-box" style="max-width:780px; max-height:88vh; overflow-y:auto;">
       <div class="modal-header">
-        <h3 style="color:#fff;">📊 Historical Quantitative Backtesting</h3>
+        <h3 style="color:#fff;">📊 Backtesting & Strategy Tuning Lab</h3>
         <button class="close-btn" id="btnCloseBacktest">&times;</button>
       </div>
 
-      <div style="display:flex; gap:10px; margin-bottom:16px;">
-        <input type="text" class="form-control" id="txtBacktestSymbol" value="RELIANCE" placeholder="Symbol (e.g. RELIANCE, INFY, TCS)" style="flex:1;">
-        <button class="btn btn-start" id="btnRunBacktest">Run Walk-Forward Backtest</button>
+      <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+        <input type="text" class="form-control" id="txtBacktestSymbol" value="NTPC"
+          placeholder="Symbol (e.g. NTPC, TATASTEEL, ITC, SBIN)" style="flex:1; min-width:160px;">
+        <button class="btn btn-start" id="btnRunBacktest">▶ Walk-Forward Backtest</button>
+        <button class="btn btn-outline" style="border-color:var(--color-cyan); color:var(--color-cyan);"
+          id="btnOptimizeStrategy">🔬 Auto-Optimize Strategy</button>
+      </div>
+
+      <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; font-size:11px; align-items:center;">
+        <span style="color:var(--text-muted);">₹5K-Friendly Presets:</span>
+        <button class="btn btn-outline bt-preset-btn" data-sym="NTPC" style="padding:2px 8px; font-size:10px;">NTPC</button>
+        <button class="btn btn-outline bt-preset-btn" data-sym="TATASTEEL" style="padding:2px 8px; font-size:10px;">TATASTEEL</button>
+        <button class="btn btn-outline bt-preset-btn" data-sym="ONGC" style="padding:2px 8px; font-size:10px;">ONGC</button>
+        <button class="btn btn-outline bt-preset-btn" data-sym="POWERGRID" style="padding:2px 8px; font-size:10px;">POWERGRID</button>
+        <button class="btn btn-outline bt-preset-btn" data-sym="ITC" style="padding:2px 8px; font-size:10px;">ITC</button>
+        <button class="btn btn-outline bt-preset-btn" data-sym="WIPRO" style="padding:2px 8px; font-size:10px;">WIPRO</button>
+        <button class="btn btn-outline bt-preset-btn" data-sym="SBIN" style="padding:2px 8px; font-size:10px;">SBIN</button>
       </div>
 
       <div id="backtestResultsContainer">
         <div style="color:var(--text-muted); text-align:center; padding:30px;">
-          Select an NSE symbol and click Run Walk-Forward Backtest to simulate with realistic statutory charges and slippage.
+          Select a capital-friendly NSE symbol for Walk-Forward Backtest, or click
+          <strong>Auto-Optimize Strategy</strong> to run a 81-combination Grid Search across 9 NSE equities with
+          In-Sample / Out-of-Sample validation.
         </div>
       </div>
     </div>
@@ -361,7 +527,11 @@
     <div class="modal-box" style="max-width:700px;">
       <div class="modal-header">
         <h3 style="color:#fff;">📑 Daily Trading & Audit Report</h3>
-        <button class="close-btn" id="btnCloseReport">&times;</button>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button class="btn btn-outline" style="padding:4px 10px; font-size:11px;" id="btnExportReportCsv">⬇ Export
+            Trades CSV</button>
+          <button class="close-btn" id="btnCloseReport">&times;</button>
+        </div>
       </div>
 
       <div id="dailyReportContent" style="font-size:12px; line-height:1.6;">
@@ -370,7 +540,124 @@
     </div>
   </div>
 
+  <!-- Modal: AI Voice Model & Audio Settings -->
+  <div class="modal-overlay" id="voiceModal">
+    <div class="modal-box" style="max-width:680px; max-height:88vh; overflow-y:auto;">
+      <div class="modal-header">
+        <h3 style="color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>🎙</span> AI Voice Model & Speech Synthesis Settings
+        </h3>
+        <button class="close-btn" id="btnCloseVoiceModal">&times;</button>
+      </div>
+
+      <p style="font-size:12px; color:var(--text-secondary); margin-bottom:14px; line-height:1.5;">
+        Configure the neural text-to-speech voice model that speaks Multi-Agent Assembly Briefings, Live Execution Fills, and Risk Alerts.
+      </p>
+
+      <!-- Voice Selection Dropdown -->
+      <div class="form-group">
+        <label style="display:flex; justify-content:space-between; align-items:center;">
+          <span>Select AI Voice Model / Engine</span>
+          <span style="font-size:10px; color:var(--color-cyan);" id="lblVoiceCount">Detecting voices...</span>
+        </label>
+        <select class="form-control" id="selectVoiceModel" style="font-family:var(--font-mono); font-size:12px;">
+          <option value="">Loading system & neural voices...</option>
+        </select>
+      </div>
+
+      <!-- Persona Presets -->
+      <div style="margin:16px 0 8px; font-size:11px; font-weight:700; color:var(--color-cyan); text-transform:uppercase;">
+        ⚡ Instant Voice Personas
+      </div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap:8px; margin-bottom:16px;">
+        <button type="button" class="btn btn-outline voice-persona-card" data-persona="anchor" style="padding:8px 4px; text-align:center; font-size:11px;">
+          <div style="font-size:14px;">👔</div>
+          <strong>Quant Anchor</strong>
+          <div style="font-size:9px; color:var(--text-muted);">Calm & Authoritative</div>
+        </button>
+        <button type="button" class="btn btn-outline voice-persona-card" data-persona="scalper" style="padding:8px 4px; text-align:center; font-size:11px;">
+          <div style="font-size:14px;">⚡</div>
+          <strong>Fast Scalper</strong>
+          <div style="font-size:9px; color:var(--text-muted);">High Energy 1.25x</div>
+        </button>
+        <button type="button" class="btn btn-outline voice-persona-card" data-persona="risk" style="padding:8px 4px; text-align:center; font-size:11px;">
+          <div style="font-size:14px;">🛡️</div>
+          <strong>Risk Officer</strong>
+          <div style="font-size:9px; color:var(--text-muted);">Deep & Measured</div>
+        </button>
+        <button type="button" class="btn btn-outline voice-persona-card" data-persona="cyber" style="padding:8px 4px; text-align:center; font-size:11px;">
+          <div style="font-size:14px;">🤖</div>
+          <strong>Cyber AI</strong>
+          <div style="font-size:9px; color:var(--text-muted);">Futuristic Pitch</div>
+        </button>
+        <button type="button" class="btn btn-outline voice-persona-card" data-persona="india" style="padding:8px 4px; text-align:center; font-size:11px;">
+          <div style="font-size:14px;">🇮🇳</div>
+          <strong>Indian Desk</strong>
+          <div style="font-size:9px; color:var(--text-muted);">Indian English</div>
+        </button>
+      </div>
+
+      <!-- Fine Tuning Sliders -->
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:6px; padding:14px; margin-bottom:16px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
+              <span>Speech Speed (Rate)</span>
+              <strong id="valVoiceRate" style="color:var(--color-cyan);">1.05x</strong>
+            </div>
+            <input type="range" id="rangeVoiceRate" min="0.7" max="1.6" step="0.05" value="1.05" style="width:100%;">
+          </div>
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
+              <span>Voice Pitch</span>
+              <strong id="valVoicePitch" style="color:var(--color-cyan);">1.00</strong>
+            </div>
+            <input type="range" id="rangeVoicePitch" min="0.6" max="1.5" step="0.05" value="1.0" style="width:100%;">
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
+            <span>Volume</span>
+            <strong id="valVoiceVolume" style="color:var(--color-cyan);">100%</strong>
+          </div>
+          <input type="range" id="rangeVoiceVolume" min="0.2" max="1.0" step="0.05" value="1.0" style="width:100%;">
+        </div>
+      </div>
+
+      <!-- Event Auto-Announcement Preferences -->
+      <div style="margin-bottom:16px; font-size:12px; display:flex; flex-direction:column; gap:8px;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+          <input type="checkbox" id="chkVoxTrades" checked>
+          <span>Auto-speak newly executed paper trades</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+          <input type="checkbox" id="chkVoxExits" checked>
+          <span>Auto-speak position exits (Target, Stop-loss, Square-off)</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+          <input type="checkbox" id="chkVoxAlerts" checked>
+          <span>Auto-speak urgent kill switch & emergency stop alerts</span>
+        </label>
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; border-top:1px solid var(--border-subtle); padding-top:14px;">
+        <button class="btn btn-outline" id="btnTestVoiceModel" style="border-color:var(--color-cyan); color:var(--color-cyan);">
+          🔊 Test Voice Model
+        </button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-outline" id="btnCancelVoiceModal">Cancel</button>
+          <button class="btn btn-start" id="btnSaveVoiceModel">Save Voice Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Overlay -->
+  <div class="toast-container" id="toastContainer"></div>
+
   <!-- Application Script -->
   <script src="/static/js/app.js"></script>
 </body>
+
 </html>

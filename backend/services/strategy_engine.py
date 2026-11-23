@@ -129,18 +129,21 @@ class StrategyEngine:
     def evaluate_strategy_confirmation(
         current_price: float,
         ind: IndicatorValues,
-        market_regime_bullish: bool
+        market_regime_bullish: bool,
+        params: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Validates whether multiple intraday strategies confirm a BUY entry.
-        Strategies:
-        1. EMA 9 > EMA 21 (Bullish Moving Average Crossover)
-        2. Price > VWAP (Intraday Institutional Trend Confirmation)
-        3. RSI between 52 and 72 (Healthy Bullish Momentum, not overbought)
-        4. MACD Histogram > 0 and MACD > Signal
-        5. Volume Breakout (RVOL >= 1.3)
-        6. Price breaking above ORB or Support/Resistance
+        Supports runtime config and custom parameter overrides for backtesting/tuning.
         """
+        p = params or {}
+        rsi_min = float(p.get("rsi_min", config.STRATEGY_RSI_MIN))
+        rsi_max = float(p.get("rsi_max", config.STRATEGY_RSI_MAX))
+        min_rvol = float(p.get("min_rvol", config.STRATEGY_MIN_RVOL))
+        atr_sl_mult = float(p.get("atr_sl_multiplier", config.STRATEGY_ATR_SL_MULTIPLIER))
+        rr_target = float(p.get("rr_ratio", config.MIN_RISK_REWARD_RATIO))
+        min_confirmations = int(p.get("min_confirmations", config.STRATEGY_MIN_CONFIRMATIONS))
+
         confirmations = []
         is_ema_bullish = ind.ema_9 > ind.ema_21
         if is_ema_bullish:
@@ -150,7 +153,7 @@ class StrategyEngine:
         if is_vwap_bullish:
             confirmations.append(f"Price ₹{current_price} holding at/above VWAP ₹{ind.vwap}")
 
-        is_rsi_favorable = 50.0 <= ind.rsi_14 <= 72.0
+        is_rsi_favorable = rsi_min <= ind.rsi_14 <= rsi_max
         if is_rsi_favorable:
             confirmations.append(f"RSI 14 at {ind.rsi_14} shows constructive momentum")
 
@@ -158,7 +161,7 @@ class StrategyEngine:
         if is_macd_bullish:
             confirmations.append("MACD above Signal line with positive histogram")
 
-        is_volume_confirmed = ind.rvol >= 1.2
+        is_volume_confirmed = ind.rvol >= min_rvol
         if is_volume_confirmed:
             confirmations.append(f"Volume surge detected (RVOL: {ind.rvol}x)")
 
@@ -170,10 +173,10 @@ class StrategyEngine:
             confirmations.append(f"Opening range breakout above ₹{ind.or_high}")
 
         # ATR-based Stop Loss & Target calculation
-        atr_buffer = max(ind.atr_14 * 1.5, current_price * 0.005)
+        atr_buffer = max(ind.atr_14 * atr_sl_mult, current_price * 0.005)
         stop_loss = round(current_price - atr_buffer, 2)
-        # Minimum 1:1.5 Risk to Reward Target
-        target = round(current_price + (atr_buffer * config.MIN_RISK_REWARD_RATIO), 2)
+        # Risk to Reward Target
+        target = round(current_price + (atr_buffer * rr_target), 2)
         rr_ratio = round((target - current_price) / max(0.01, (current_price - stop_loss)), 2)
 
         return {
@@ -182,7 +185,7 @@ class StrategyEngine:
             "stop_loss": stop_loss,
             "target": target,
             "risk_reward_ratio": rr_ratio,
-            "is_confirmed": len(confirmations) >= 4 and is_vwap_bullish and is_ema_bullish
+            "is_confirmed": len(confirmations) >= min_confirmations and is_vwap_bullish and is_ema_bullish
         }
 
 strategy_engine = StrategyEngine()
